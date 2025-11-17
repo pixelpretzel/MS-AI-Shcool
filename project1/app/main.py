@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.ocr.azure_ocr import extract_text_from_image
+from app.llm.gemini_client import build_sd_prompt_from_text
 
 app = FastAPI()
 
@@ -26,9 +27,6 @@ async def index(request: Request):
 
 @app.post("/ocr", response_class=HTMLResponse)
 async def ocr_image(request: Request, file: UploadFile = File(...)):
-    """
-    이미지 파일을 받아 Azure OCR을 수행하고 결과 텍스트를 보여준다.
-    """
     try:
         # 파일 바이트 읽기
         image_bytes = await file.read()
@@ -36,11 +34,14 @@ async def ocr_image(request: Request, file: UploadFile = File(...)):
         # Azure OCR 실행
         ocr_text = extract_text_from_image(image_bytes)
 
+        sd_prompt = build_sd_prompt_from_text(ocr_text)
+
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
                 "ocr_text": ocr_text,
+                "sd_prompt": sd_prompt,
                 "error": None,
                 "filename": file.filename,
             },
@@ -51,6 +52,7 @@ async def ocr_image(request: Request, file: UploadFile = File(...)):
             {
                 "request": request,
                 "ocr_text": None,
+                "sd_prompt": None,
                 "error": str(e),
                 "filename": getattr(file, "filename", None),
             },

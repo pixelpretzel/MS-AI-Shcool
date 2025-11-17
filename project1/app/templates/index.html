@@ -29,6 +29,14 @@
 {{ ocr_text }}
     </pre>
   {% endif %}
+
+{% if sd_prompt %}
+  <h2>Stable Diffusion 프롬프트</h2>
+  <pre style="white-space: pre-wrap; background:#eef7ff; padding:1rem;">
+{{ sd_prompt }}
+  </pre>
+{% endif %}
+
 </body>
 </html>
 

@@ -8,6 +8,8 @@ from app.ocr.azure_ocr import extract_text_from_image
 from app.llm.gemini_client import build_sd_prompt_from_text
 from app.diffusion.sd_client import generate_image_from_prompt
 
+import traceback
+
 app = FastAPI()
 
 # static / templates 설정
@@ -100,6 +102,8 @@ async def generate_from_image(request: Request, file: UploadFile = File(...)):
             },
         )
     except Exception as e:
+        print("[/generate] ERROR:")
+        traceback.print_exc()
         return templates.TemplateResponse(
             "index.html",
             {

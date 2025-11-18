@@ -17,3 +17,5 @@ Pillow
 
 requests
 
+
+torch

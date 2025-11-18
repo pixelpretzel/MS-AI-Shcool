@@ -1,22 +1,29 @@
-<!-- app/templates/index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>이미지 OCR 데모</title>
+  <title>이미지 → OCR → Gemini → Stable Diffusion</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <h1>이미지 → Azure OCR 텍스트 추출</h1>
+  <h1>이미지 → OCR → Gemini 프롬프트 → Stable Diffusion 이미지 생성</h1>
 
-  <form action="/ocr" method="post" enctype="multipart/form-data">
+  <h2>① OCR + SD 전체 파이프라인</h2>
+  <form action="/generate" method="post" enctype="multipart/form-data">
     <label for="file">이미지 파일 선택:</label>
     <input type="file" id="file" name="file" accept="image/*" required />
-    <button type="submit">OCR 수행</button>
+    <button type="submit">업로드 & 이미지 생성</button>
+  </form>
+
+  <h2>② OCR만 테스트</h2>
+  <form action="/ocr" method="post" enctype="multipart/form-data">
+    <label for="file_ocr">이미지 파일 선택:</label>
+    <input type="file" id="file_ocr" name="file" accept="image/*" required />
+    <button type="submit">업로드 & 텍스트 추출</button>
   </form>
 
   {% if filename %}
-    <h2>파일: {{ filename }}</h2>
+    <h3>파일: {{ filename }}</h3>
   {% endif %}
 
   {% if error %}
@@ -24,19 +31,24 @@
   {% endif %}
 
   {% if ocr_text %}
-    <h2>추출된 텍스트</h2>
+    <h2>추출된 텍스트 (Azure OCR)</h2>
     <pre style="white-space: pre-wrap; background:#f0f0f0; padding:1rem;">
 {{ ocr_text }}
     </pre>
   {% endif %}
 
-{% if sd_prompt %}
-  <h2>Stable Diffusion 프롬프트</h2>
-  <pre style="white-space: pre-wrap; background:#eef7ff; padding:1rem;">
+  {% if sd_prompt %}
+    <h2>Stable Diffusion 프롬프트 (Gemini)</h2>
+    <pre style="white-space: pre-wrap; background:#eef7ff; padding:1rem;">
 {{ sd_prompt }}
-  </pre>
-{% endif %}
+    </pre>
+  {% endif %}
 
+  {% if generated_image_url %}
+    <h2>생성된 이미지 (Stable Diffusion 기본 모델)</h2>
+    <img src="{{ generated_image_url }}" alt="Generated image"
+         style="max-width: 100%; height: auto; border: 1px solid #ccc;" />
+  {% endif %}
 </body>
 </html>
 

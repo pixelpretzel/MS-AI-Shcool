@@ -10,3 +10,6 @@ AZURE_CV_KEY = os.getenv("AZURE_CV_KEY")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # SD_API_KEY = os.getenv("SD_API_KEY")
+
+# Stable Diffusion 기본 모델
+SD_MODEL_ID = os.getenv("SD_MODEL_ID", "runwayml/stable-diffusion-v1-5")

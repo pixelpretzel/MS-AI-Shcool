@@ -77,7 +77,7 @@ def generate_image_from_prompt(
 
     # 기본 negative prompt
     #negative_prompt = "low quality, blurry, distorted, text, watermark, signature"
-    negative_prompt = "low quality, blurry, distorted, watermark, text, cropped, ugly, deformed, disfigured, poor anatomy, extra limbs, missing limbs, malformed hands,mutated, bad eyes, poorly drawn eyes, text, watermark, signature, speech bubble, dark, gloomy, scary, horror, unsettling, abstract, monochrome, grayscale, realistic, photography, photo"
+    negative_prompt = "deformed face, distorted face, asymmetrical face, extra eyes, extra limbs, extra fingers, long neck, disfigured, mutated, low quality, blurry, distorted, text, cropped, ugly, deformed, disfigured, poor anatomy, missing limbs, malformed hands, mutated, poorly drawn eyes, unsettling, monochrome, grayscale, realistic, photography, photo"
 
     result = pipe(
         prompt=prompt,
@@ -96,5 +96,5 @@ def generate_image_from_prompt(
     image.save(filepath)
 
     url_path = f"/static/generated/{filename}"
-    return url_path, file_path
+    return url_path, filepath
 

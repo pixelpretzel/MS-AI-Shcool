@@ -18,22 +18,24 @@ def build_sd_prompt_from_text(raw_text: str) -> str:
     _configure_client()
 
     system_prompt = """
-You are a professional prompt engineer for text-to-image models.
-Your job is to convert input text into a clean, detailed visual prompt.
+Role: You are an expert prompt engineer for Stable Diffusion who turns children’s story text into consistent, detailed illustration prompts.
+Task: Based on the input text, write one clear, concise English prompt for image generation that faithfully depicts a single key scene (including main characters, their consistent appearance, emotions, actions, setting, time of day, atmosphere), without any meta-commentary or instructions.
 
-Requirements:
-- Output ONLY the final prompt, no explanations.
-- Focus on clear visual description (who/what/where/when/mood).
-- Style: warm, child-friendly illustrated book, soft colors.
-- Do NOT mention 'Stable Diffusion' or 'prompt' in the output.
+CRITICAL RULES (Must Follow): 
+1. DYNAMIC ENTITY DETECTION: 
+- Determine if the subject is Human or Animal from context. 
+- BIAS FIX: If the subject is a human role (e.g., King, Queen, Student), MUST add "Human" prefix (e.g., "Human King"). 
+- ANIMAL FIX: If it is an animal, specify the species clearly (e.g., "Baby Bear animal"). 
+2. QUANTITY FIX: If a number is mentioned for the Main Subject, use digits in parentheses at the start (e.g., "(5) baby ducks"). 
+3. SAFETY & EMOTION: Convert scary/violent actions into child-friendly facial expressions or poses (e.g., "crying" -> "sad face", "fighting" -> "standing confidently"). 
+
+Output Format: [Quantity if any] [Adjective] [ONE Main Subject] [Action] [Simple Background] (Do not add any other words, explanations, or intros.)
+
 """
 
-    user_prompt = f"""
-Input text:
-{raw_text}
-"""
+    user_prompt = f"Input text: {raw_text}"
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(
         [
             system_prompt,

@@ -11,8 +11,9 @@ from app.config import SD_MODEL_ID
 _device = "cuda" if torch.cuda.is_available() else "cpu"
 _pipe: StableDiffusionXLPipeline | None = None
 
-
-import traceback
+_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# app/static/generated
+_DEFAULT_OUTPUT_DIR = os.path.join(_BASE_DIR, "static", "generated")
 
 def _get_pipeline() -> StableDiffusionXLPipeline:
     global _pipe
@@ -50,17 +51,22 @@ def _get_pipeline() -> StableDiffusionXLPipeline:
 
 def generate_image_from_prompt(
     prompt: str,
-    output_dir: str = "app/static/generated",
+    output_dir: str | None = None,
     num_inference_steps: int = 30,
-    guidance_scale: float = 7.0,
+    guidance_scale: float = 10.0,
     seed: int | None = None,
     width: int = 1024,
     height: int = 1024,
-) -> str:
+) -> tuple[str, str]:
     """
-    Stable Diffusion v1.5로 이미지를 생성하고 저장한 뒤,
-    /static 경로로 접근 가능한 URL 반환.
+    SDXL로 이미지를 생성하고 저장한 뒤,
+    (url_path, file_path)를 반환
     """
+
+    if output_dir is None:
+        output_dir = _DEFAULT_OUTPUT_DIR
+
+
     os.makedirs(output_dir, exist_ok=True)
 
     pipe = _get_pipeline()
@@ -70,6 +76,7 @@ def generate_image_from_prompt(
         generator = torch.Generator(device=_device).manual_seed(seed)
 
     # 기본 negative prompt
+    #negative_prompt = "low quality, blurry, distorted, text, watermark, signature"
     negative_prompt = "low quality, blurry, distorted, watermark, text, cropped, ugly, deformed, disfigured, poor anatomy, extra limbs, missing limbs, malformed hands,mutated, bad eyes, poorly drawn eyes, text, watermark, signature, speech bubble, dark, gloomy, scary, horror, unsettling, abstract, monochrome, grayscale, realistic, photography, photo"
 
     result = pipe(
@@ -89,5 +96,5 @@ def generate_image_from_prompt(
     image.save(filepath)
 
     url_path = f"/static/generated/{filename}"
-    return url_path
+    return url_path, file_path
 

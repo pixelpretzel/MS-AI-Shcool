@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 import json
 
 from app.ocr.azure_ocr import extract_text_from_image
-from app.llm.gemini_client import build_sd_prompt_from_text
+from app.llm.gemini_client import build_sd_prompt_from_text, build_ai_question
 from app.diffusion.sd_client import generate_image_from_prompt
 from app.vision.azure_cv_client import detect_objects_from_image_url
 
@@ -59,11 +59,14 @@ async def process_page(
         image_url = generate_image_from_prompt(sd_prompt)
         print("iamge_url: ", image_url)
         objects = detect_objects_from_image_url(image_url)
-        print("od")
+        print("objects detected")
+        ai_question = build_ai_question(ocr_text)
+        print("ai_question: ", ai_question)
         return {
             "ocrText": ocr_text,
             "imageUrl": image_url,
-            "objects": objects
+            "objects": objects,
+            "aiQuestion": ai_question
             }
 
     except Exception as e:

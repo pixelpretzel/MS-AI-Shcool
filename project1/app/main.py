@@ -6,9 +6,14 @@ from fastapi.staticfiles import StaticFiles
 import json
 
 from app.ocr.azure_ocr import extract_text_from_image
-from app.llm.gemini_client import build_sd_prompt_from_text, build_ai_question
+from app.llm.gemini_client import (
+        build_sd_prompt_from_text, 
+        build_ai_question,
+        build_chat_reaction,
+        )
 from app.diffusion.sd_client import generate_image_from_prompt
 from app.vision.azure_cv_client import detect_objects_from_image_url
+
 
 import traceback
 
@@ -64,6 +69,7 @@ async def process_page(
         print("ai_question: ", ai_question)
         return {
             "ocrText": ocr_text,
+            "sd_prompt": sd_prompt,
             "imageUrl": image_url,
             "objects": objects,
             "aiQuestion": ai_question
@@ -72,3 +78,27 @@ async def process_page(
     except Exception as e:
         print("[/api/process-page] ERROR:", repr(e))
         return { "error": str(e) }
+
+
+# ---------------------------
+# 3. 그림 재생성
+# ---------------------------
+@app.post("/api/regenerate-image")
+async def regenerate_image(payload: dict):
+    try:
+        prompt = payload.get("prompt")
+        if not prompt or not isinstance(prompt, str):
+            return {"error": "prompt 필드는 문자열로 반드시 포함되어야 합니다."}
+        image_url = generate_image_from_prompt(prompt)
+        print("regenerated iamge_url: ", image_url)
+        objects = detect_objects_from_image_url(image_url)
+        print("objects detected")
+        return {
+            "imageUrl": image_url,
+            "objects": objects,
+            }
+
+    except Exception as e:
+        print("[/api/regenerate-image] ERROR:", repr(e))
+        return { "error": str(e) }
+

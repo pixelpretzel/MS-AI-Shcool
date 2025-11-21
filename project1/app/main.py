@@ -10,6 +10,7 @@ from app.llm.gemini_client import (
         build_sd_prompt_from_text, 
         build_ai_question,
         build_chat_reaction,
+        summarize_chat_history,
         )
 from app.diffusion.sd_client import generate_image_from_prompt
 from app.vision.azure_cv_client import detect_objects_from_image_url
@@ -126,3 +127,24 @@ async def chat_api(payload: dict):
     except Exception as e:
         print("[/api/chat] ERROR:", repr(e))
         return { "error": str(e) }
+
+# ---------------------------
+# 5. 채팅 요약 API
+#    POST /api/chat-summary
+#    Request: { "history": [ ... ] }
+#    Response: { "summary": "..." }
+# ---------------------------
+@app.post("/api/chat-summary")
+async def chat_summary_api(payload: dict):
+    try:
+        history = payload.get("history") or []
+        if not isinstance(history, list):
+            history = []
+
+        summary = summarize_chat_history(history)
+        return {"summary": summary}
+
+    except Exception as e:
+        print("[/api/chat-summary] ERROR:", repr(e))
+        return {"error": str(e)}
+

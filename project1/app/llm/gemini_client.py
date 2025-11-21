@@ -135,3 +135,54 @@ def build_chat_reaction(child_message: str, history: list[dict]) -> str:
 
     response = model.generate_content(prompt)
     return (response.text or "").strip()
+
+def summarize_chat_history(history: list[dict]) -> str:
+    """
+    아이와 선생님 사이의 대화 history를 받아
+    아이가 어떤 생각/감정을 말했는지 중심으로 짧게 요약해준다.
+
+    history 예:
+    [
+      {"role": "assistant", "content": "늑대가 나타났을 때 아기 돼지는 어떤 기분이었을까?"},
+      {"role": "user", "content": "무서웠을 것 같아."},
+      {"role": "assistant", "content": "그렇구나, 무서웠겠구나. 너라면 어떻게 했을 것 같아?"},
+      {"role": "user", "content": "나는 도망갔을 것 같아."}
+    ]
+    """
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    conv_lines = []
+    for turn in history:
+        role = turn.get("role")
+        content = turn.get("content", "")
+        if role == "user":
+            conv_lines.append(f"아이: {content}")
+        elif role == "assistant":
+            conv_lines.append(f"선생님: {content}")
+        else:
+            conv_lines.append(content)
+
+    convo_text = "\n".join(conv_lines)
+
+    prompt = f"""
+너는 3~7살 아이와 그림책을 읽고 대화한 내용을 정리해 주는 선생님이야.
+
+아래는 선생님(assistant)과 아이(user)의 대화 기록이야.
+이 대화를 바탕으로,
+1) 아이가 어떤 감정/생각/관점을 말했는지
+2) 어떤 주제(상황)에 대해 이야기했는지
+를 중심으로 짧게 요약해줘.
+
+형식:
+- 2~4문장 정도의 간단한 한국어 문단
+- 아이가 한 말은 "아이의 말에 따르면 ~" 이런 식으로 정리해줘.
+- 전체적인 분위기(재밌어함, 무서워함, 공감함 등)도 한 줄 언급해줘.
+- 반말 말고, 교사용 기록처럼 정중한 서술체로 작성해.
+
+대화 기록:
+{convo_text}
+"""
+
+    response = model.generate_content(prompt)
+    return (response.text or "").strip()

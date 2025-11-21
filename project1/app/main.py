@@ -102,3 +102,27 @@ async def regenerate_image(payload: dict):
         print("[/api/regenerate-image] ERROR:", repr(e))
         return { "error": str(e) }
 
+
+# ---------------------------
+# 4. 채팅 API (아이 답장 → 리액션)
+#    POST /api/chat
+#    Request: { "message": "...", "history": [ ... ] }
+#    Response: { "reply": "..." }
+# ---------------------------
+@app.post("/api/chat")
+async def chat_api(payload: dict):
+    try:
+        message = payload.get("message", "")
+        history = payload.get("history") or []
+
+        if not isinstance(history, list):
+            history = []
+
+        # Gemini에게 채팅 리액션 생성 요청
+        reply = build_chat_reaction(message, history)
+
+        return { "reply": reply }
+
+    except Exception as e:
+        print("[/api/chat] ERROR:", repr(e))
+        return { "error": str(e) }

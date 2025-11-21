@@ -72,3 +72,66 @@ You must produce a structured output focused on promoting active engagement and 
     response = model.generate_content(                                              [                                                                               question_prompt,                                                            user_prompt,                                                            ]                                                                       )
 
     return response.text.strip()
+
+
+# --------------------------
+# 💬 아이 답장에 리액션하는 채팅용 함수
+# --------------------------
+
+STORY_TEACHER_SYSTEM_PROMPT = """
+너는 그림책을 함께 읽어주는 다정한 선생님이야.
+3~7살 아이와 이야기 나누듯이 대화해.
+항상 편안한 반말을 쓰고, 짧게 1~3문장 정도로 대답해.
+아이의 대답을 잘 받아주고, 가끔은 다시 물어보면서 대화를 이어가.
+AI나 모델이라는 말은 절대 하지 마.
+"""
+
+
+def build_chat_reaction(child_message: str, history: list[dict]) -> str:
+    """
+    아이가 보낸 최신 메시지 + 이전 history를 바탕으로
+    '선생님' 역할의 반말 리액션을 생성.
+    history 형식 예:
+      [
+        {"role": "assistant", "content": "늑대가 나타나서 아기 돼지는 기분이 어땠을까?"},
+        {"role": "user", "content": "무서웠을 것 같아."}
+      ]
+    """
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    # 대화 로그를 텍스트로 이어붙이기
+    conv_lines = []
+
+    for turn in history:
+        role = turn.get("role")
+        content = turn.get("content", "")
+
+        if role == "user":
+            conv_lines.append(f"아이: {content}")
+        elif role == "assistant":
+            conv_lines.append(f"선생님: {content}")
+        else:
+            conv_lines.append(content)
+
+    # 최신 아이 메시지는 history 바깥에서 받은 것으로 처리
+    conv_lines.append(f"아이: {child_message}")
+
+    conversation_text = "\n".join(conv_lines)
+
+    prompt = f"""
+{STORY_TEACHER_SYSTEM_PROMPT}
+
+아래는 지금까지의 대화야. 마지막 줄의 '아이' 말에 이어서,
+'선생님' 입장에서 따뜻하게 반말로 1~3문장 정도로 대답해줘.
+
+대화:
+{conversation_text}
+
+주의사항:
+- 아이의 말을 먼저 공감해 주고, 필요하면 쉬운 질문을 한 번 더 해 줘.
+- 이모지 쓰지 마.
+"""
+
+    response = model.generate_content(prompt)
+    return (response.text or "").strip()
